@@ -1,0 +1,79 @@
+
+class rw_reg_seq extends uvm_sequence #(uvm_sequence_item);
+
+  `uvm_object_utils(rw_reg_seq)
+
+  uvm_status_e   status;
+  uvm_reg_data_t wr_data;
+  uvm_reg_data_t rd_data;
+
+  // Arrays to store write and read values
+  uvm_reg_data_t write_arr[10];
+  uvm_reg_data_t read_arr[10];
+
+  function new(string name="rw_reg_seq");
+    super.new(name);
+  endfunction
+
+  virtual task body();
+
+    // Assume my_reg is the register handle
+    for (int i = 1; i <= 10; i++) begin
+
+      // Square of current iteration index
+      wr_data = i * i;
+
+      // Store write value
+      write_arr[i-1] = wr_data;
+
+      // Write to register
+      regmodel.my_reg.write(
+        .status(status),
+        .value(wr_data),
+        .parent(this)
+      );
+
+      `uvm_info(get_name(),
+                $sformatf("WRITE[%0d] = %0d", i-1, wr_data),
+                UVM_MEDIUM)
+
+      // Read back from same register
+      regmodel.my_reg.read(
+        .status(status),
+        .value(rd_data),
+        .parent(this)
+      );
+
+      // Store read value
+      read_arr[i-1] = rd_data;
+
+      `uvm_info(get_name(),
+                $sformatf("READ[%0d] = %0d", i-1, rd_data),
+                UVM_MEDIUM)
+
+    end
+
+    // Print arrays at end
+    `uvm_info(get_name(),
+              "--------- WRITE ARRAY ---------",
+              UVM_NONE)
+
+    foreach(write_arr[i])
+      `uvm_info(get_name(),
+                $sformatf("write_arr[%0d] = %0d",
+                          i, write_arr[i]),
+                UVM_NONE)
+
+    `uvm_info(get_name(),
+              "--------- READ ARRAY ---------",
+              UVM_NONE)
+
+    foreach(read_arr[i])
+      `uvm_info(get_name(),
+                $sformatf("read_arr[%0d] = %0d",
+                          i, read_arr[i]),
+                UVM_NONE)
+
+  endtask
+
+endclass
